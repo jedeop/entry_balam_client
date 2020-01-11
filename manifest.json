@@ -1,0 +1,31 @@
+{
+  "name": "Entry Balam Client",
+  "version": "1.0",
+  "description": "",
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": false
+  },
+  "permissions": ["activeTab", "declarativeContent"],
+  "page_action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icons/balam_icon-16.png",
+      "32": "images/icons/balam_icon-32.png",
+      "48": "images/icons/balam_icon-48.png",
+      "128": "images/icons/balam_icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "images/icons/balam_icon-16.png",
+    "32": "images/icons/balam_icon-32.png",
+    "48": "images/icons/balam_icon-48.png",
+    "128": "images/icons/balam_icon-128.png"
+  },
+  "web_accessible_resources": [
+    "executeCode.js"
+  ],
+  "manifest_version": 2
+}
