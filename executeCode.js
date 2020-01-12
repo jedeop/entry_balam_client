@@ -159,6 +159,26 @@ class EntryBalam{
       }
       return script.callReturn();
     }
+    // (신호) 보내기
+    Entry.block.message_cast.func = (sprite, script) => {
+      const value = script.getField('VALUE', script);
+
+      const arr = Entry.variableContainer.messages_;
+      const isExist = Entry.isExist(value, 'id', arr);
+
+      if (value == 'null' || !isExist) {
+        throw new Error('value can not be null or undefined');
+      }
+
+      if (_.find(arr, { id: value }).name.startsWith(this.BalamPerfix)) {
+        this.sendSocket('message', { id: value }, {});
+      } else {
+        setTimeout(function () {
+          Entry.engine.raiseMessage(value);
+        });
+      }
+
+    }
 
     this.log('활성화 완료.');
     return true;
@@ -203,6 +223,8 @@ class EntryBalam{
             const list = this.vc.getList(message.target.id, message.target.sprite);
             list.array_ = message.value;
             list.updateView();
+          case 'message':
+            Entry.engine.raiseMessage(message.target.id);
           default:
             break;
         }
