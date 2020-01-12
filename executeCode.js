@@ -115,6 +115,50 @@ class EntryBalam{
       }
       return script.callReturn();
     }
+    // (값)을 (리스트)의 (값)번째에 넣기
+    Entry.block.insert_value_to_list.func = (sprite, script) => {
+      const listId = script.getField('LIST', script);
+      const [data, index] = script.getValues(['DATA', 'INDEX'], script);
+      const list = Entry.variableContainer.getList(listId, sprite);
+
+      if (
+        !list.array_ ||
+        !Entry.Utils.isNumber(index) ||
+        index == 0 ||
+        index > list.array_.length + 1
+      ) {
+        throw new Error('can not insert value to array');
+      }
+      if (this.isTargetUsingBalam(list)) {
+        this.sendSocket('insertList', { id: listId, sprite: sprite }, { data: data, index: index });
+      } else {
+        list.array_.splice(index - 1, 0, { data });
+        list.updateView();
+      }
+      return script.callReturn();
+    }
+    // (리스트)의 (값)번째 항목을 (값)으로 바꾸기
+    Entry.block.change_value_list_index.func = (sprite, script) => {
+      const listId = script.getField('LIST', script);
+      const [data, index] = script.getValues(['DATA', 'INDEX'], script);
+      const list = Entry.variableContainer.getList(listId, sprite);
+
+      if (
+        !list.array_ ||
+        !Entry.Utils.isNumber(index) ||
+        index > list.array_.length
+      ) {
+        throw new Error('can not insert value to array');
+      }
+
+      if (this.isTargetUsingBalam(list)) {
+        this.sendSocket('changeList', { id: listId, sprite: sprite }, { data: data, index: index });
+      } else {
+        list.array_[index - 1].data = data;
+        list.updateView();
+      }
+      return script.callReturn();
+    }
 
     this.log('활성화 완료.');
     return true;
