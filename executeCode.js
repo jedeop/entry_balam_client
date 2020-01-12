@@ -53,23 +53,23 @@ class EntryBalam{
       }
 
       const variable = Entry.variableContainer.getVariable(variableId, sprite);
-      let variableValue = variable.getValue();
-      let sumValue;
-      if (Entry.Utils.isNumber(value) && variable.isNumber()) {
-        value = Entry.parseNumber(value);
-        variableValue = Entry.parseNumber(variableValue);
-        fixed = Entry.getMaxFloatPoint([value, variable.getValue()]);
-        sumValue = new BigNumber(value)
-          .plus(variableValue)
-          .toNumber()
-          .toFixed(fixed);
-      } else {
-        sumValue = `${variableValue}${value}`;
-      }
 
       if (this.isTargetUsingBalam(variable)) {
-        this.sendSocket('setVariable', { id: variableId, sprite: sprite }, sumValue);
+        this.sendSocket('changeVariable', { id: variableId, sprite: sprite }, value);
       } else {
+        let variableValue = variable.getValue();
+        let sumValue;
+        if (Entry.Utils.isNumber(value) && variable.isNumber()) {
+          value = Entry.parseNumber(value);
+          variableValue = Entry.parseNumber(variableValue);
+          fixed = Entry.getMaxFloatPoint([value, variable.getValue()]);
+          sumValue = new BigNumber(value)
+            .plus(variableValue)
+            .toNumber()
+            .toFixed(fixed);
+        } else {
+          sumValue = `${variableValue}${value}`;
+        }
         variable.setValue(sumValue);
       }
       return script.callReturn();
@@ -80,20 +80,42 @@ class EntryBalam{
       const value = script.getValue('VALUE', script);
       const list = Entry.variableContainer.getList(listId, sprite);
 
-      if (!list.array_) {
-        list.array_ = [];
-      }
-
       if (this.isTargetUsingBalam(list)) {
-        let clonedList = _.cloneDeep(list.array_);
-        clonedList.push({ data: value });
-        this.sendSocket('setList', { id: listId, sprite: sprite }, clonedList)
+        this.sendSocket('pushList', { id: listId, sprite: sprite }, value);
       } else {
+        if (!list.array_) {
+          list.array_ = [];
+        }
+  
         list.array_.push({ data: value });
         list.updateView();
       }
       return script.callReturn();
     }
+    // (값)번째 항목을 (리스트)에서 삭제하기
+    Entry.block.remove_value_from_list.func = (sprite, script) => {
+      const listId = script.getField('LIST', script);
+      const value = script.getValue('VALUE', script);
+      const list = Entry.variableContainer.getList(listId, sprite);
+
+      if (
+        !list.array_ ||
+        !Entry.Utils.isNumber(value) ||
+        value > list.array_.length
+      ) {
+        throw new Error('can not remove value from array');
+      }
+
+      if (this.isTargetUsingBalam(list)) {
+        this.sendSocket('removeList', { id: listId, sprite: sprite }, value);
+      } else {
+        list.array_.splice(value - 1, 1);
+
+        list.updateView();
+      }
+      return script.callReturn();
+    }
+
     this.log('활성화 완료.');
     return true;
   }
@@ -114,11 +136,13 @@ class EntryBalam{
     };
     this.socket.onclose = (evt) => {
       this.log('WebSocket 연결이 끊어짐.', evt.reason);
-      // 연결이 끊기면 500ms 후 다시 연결함.
-      setTimeout(() => {
-        this.log('WebSocket 재연결 시도.');
-        this.socketConnect();
-      }, 500);
+      if (evt.reason !== 'disable') {
+        // 의도적이지 않게 연결이 끊기면 1000ms 후 다시 연결함.
+        setTimeout(() => {
+          this.log('WebSocket 재연결 시도.');
+          this.socketConnect();
+        }, 1000);
+      }
     }
     this.socket.onmessage = (evt) => {
       const message = JSON.parse(evt.data);
@@ -127,13 +151,13 @@ class EntryBalam{
       if (Entry.engine.state === 'run') { // 작품이 실행중이면
         // 받은 메세지를 타입별로 구분 후 처리
         switch (message.type) {
-          case 'setVariable':
+          case 'variable':
             const variable = this.vc.getVariable(message.target.id, message.target.sprite);
-            variable.setValue(message.data);
+            variable.setValue(message.value);
             break;
-          case 'setList':
+          case 'list':
             const list = this.vc.getList(message.target.id, message.target.sprite);
-            list.array_ = message.data;
+            list.array_ = message.value;
             list.updateView();
           default:
             break;
@@ -146,13 +170,13 @@ class EntryBalam{
     return this.socket.readyState === WebSocket.OPEN;
   }
   // socket으로 메세지 보내기 
-  sendSocket(type, target, data) { // target: 변경된 변수(,리스트, 신호)
+  sendSocket(type, target, value) { // target: 변경된 변수(,리스트, 신호)
     if (this.isSocketOpen()) { // WebSocket이 연결되어 있다면 
       // 보낼 message
       const message = {
         type: type,
         target: target,
-        data: data
+        value: value
       }
 
       // WebSocket.send 예외 처리
