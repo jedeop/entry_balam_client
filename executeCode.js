@@ -27,6 +27,9 @@ class EntryBalam{
     Entry.addEventListener('run', () => {
       // 작품 변수에서 필요한 정보 추출.
       this.BalamPerfix = _.find(this.vc.variables_, { name_: "USE바람" }).getValue();
+      // STATE바람 변수 설정
+      if (this.isSocketOpen) _.find(this.vc.variables_, { name_: 'STATE바람' }).setValue('OPEN');
+      else _.find(this.vc.variables_, { name_: 'STATE바람' }).setValue('CLOSE');
     })
 
     // EntryJS 블록 실행 코드 변경
@@ -193,12 +196,14 @@ class EntryBalam{
 
     this.socket.onopen = () => {
       this.log('WebSocket 연결됨.')
+      if (Entry.engine.state === 'run') _.find(this.vc.variables_, {name_: 'STATE바람'}).setValue('OPEN');
     };
     this.socket.onerror = (err) => {
       this.log('WebSocket 에러:', err.message);
       ws.close();
     };
     this.socket.onclose = (evt) => {
+      if (Entry.engine.state === 'run') _.find(this.vc.variables_, { name_: 'STATE바람' }).setValue('CLOSE');
       this.log('WebSocket 연결이 끊어짐.', evt.reason);
       if (evt.reason !== 'disable') {
         // 의도적이지 않게 연결이 끊기면 1000ms 후 다시 연결함.
