@@ -30,6 +30,9 @@ class EntryBalam{
       // STATE바람 변수 설정
       if (this.isSocketOpen) _.find(this.vc.variables_, { name_: 'STATE바람' }).setValue('OPEN');
       else _.find(this.vc.variables_, { name_: 'STATE바람' }).setValue('CLOSE');
+
+      // 서버에 현재 실시간 변수/리스트 정보를 요청
+      this.sendSocket('sync', null, null);
     })
 
     // EntryJS 블록 실행 코드 변경
@@ -228,8 +231,22 @@ class EntryBalam{
             const list = this.vc.getList(message.target.id, message.target.sprite);
             list.array_ = message.value;
             list.updateView();
+            break;
           case 'message':
             Entry.engine.raiseMessage(message.target.id);
+            break;
+          case 'sync':
+            let variables = _.concat(this.vc.variables_, this.vc.lists_)
+            message.data.forEach(v => {
+              let variable = _.find(variables, {id_: v.id})
+              this.log(v, variable)
+              if (variable.type === 'variable') {
+                variable.setValue(v.value);
+              } else {
+                variable.array_ = v.value;
+                variable.updateView();
+              };
+            });
           default:
             break;
         }
