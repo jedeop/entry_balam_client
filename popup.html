@@ -4,29 +4,69 @@
 <head>
   <meta charset="UTF-8">
   <style>
-    div {
-      font-family: '나눔스퀘어';
-      font-size: 2em;
-      font-weight: bolder;
-      text-align: center;
+    body {
+      display: flex;
+      flex-direction: column;
+      width: 150px;
+      justify-content: center;
+    }
+    .use-btn {
+      font-family: 'BMEULJIRO';
+      font-size: 1.5em;
 
       cursor: pointer;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: row;
+      
+      padding: 5px 10px 10px 10px;
+
+      border-bottom: .7px black solid;
+    }
+    .use-btn svg {
+      margin-right: 10px;
     }
     
     .icon {
       fill: #95f;
     }
-    div:hover .icon {
+    .use-btn:hover .icon {
       fill: #8431ff;
+    } 
+
+    .links {
+      display: flex;
+      flex-direction: row;
+      font-size: 1.2em;
+
+      cursor: pointer;
+      margin-top: 5px;
+    }
+    .links div {
+      flex: 1;
+      text-align: center;
+    }
+    .links div:hover, .use-btn:hover {
+      color: rgb(99, 99, 99);
+    }
+    .links div:nth-child(1) {
+      border-right: .7px solid rgb(165, 165, 165);
     }
   </style>
 </head>
 
 <body>
-  <div>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" height="100px" width="100px">
-      <path class="icon" d="M0 0v150h150V0H79.688v50.92h37.759v41.126h-37.76v25.487H39.845V0z" /></svg>
-    사용하기
+  <div class="use-btn">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" height="30px" width="30px">
+      <path class="icon" d="M0 0v150h150V0H79.688v50.92h37.759v41.126h-37.76v25.487H39.845V0z" />
+    </svg> 
+    <div>활성화</div>
+  </div>
+  <div class="links">
+    <div>도움말</div>
+    <div>누리집</div>
   </div>
   <script src="popup.js"></script>
 </body>
