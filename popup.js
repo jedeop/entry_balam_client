@@ -1,5 +1,5 @@
 const extentionPerfix = '[Ex: BALAM]';
-const btn = document.querySelector('div');
+const btn = document.querySelector('.use-btn');
 btn.addEventListener('click', () => {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     chrome.tabs.executeScript(
