@@ -9,16 +9,20 @@ class EntryBalam{
   init() {
     // 현재 페이지가 올바른 페이지인가
     if (location.hostname !== 'playentry.org' || (location.pathname.split('/')[1].length <= 2 && location.pathname.split('/')[1] !== 'ws') || typeof Entry == "undefined") {
-      this.log("에러: 이곳에서는 '바람'을 사용할 수 없습니다.");
-      return false;
+      const msg = "에러: 이 페이지에서는 '바람'을 사용할 수 없습니다."
+      this.log(msg);
+      this.alert(msg);
+      return 2;
     }
 
     this.vc = Entry.variableContainer;
 
     // 이 프로젝트에서 바람을 사용하는가
     if (!_.some(this.vc.variables_, { name_: 'USE바람' })) {
-      this.log("에러: 이 프로젝트는 '바람'을 사용하지 않는 프로젝트입니다.")
-      return false;
+      const msg = "에러: 이 프로젝트는 '바람'을 사용하지 않는 프로젝트입니다."
+      this.log(msg);
+      this.alert(msg);
+      return 2;
     }
 
     this.socketConnect(); // WebSocket 연결
@@ -187,11 +191,14 @@ class EntryBalam{
     }
 
     this.log('활성화 완료.');
-    return true;
+    return 1;
   }
   // log with extentionPerfix
   log(...msg) {
     console.log(this.extentionPerfix, ...msg)
+  }
+  alert(msg) {
+    entrylms.alert(msg, "엔트리 비공식 확장기능 '바람'");
   }
   // socket 연결
   socketConnect() {
@@ -239,7 +246,6 @@ class EntryBalam{
             let variables = _.concat(this.vc.variables_, this.vc.lists_)
             message.data.forEach(v => {
               let variable = _.find(variables, {id_: v.id})
-              this.log(v, variable)
               if (variable.type === 'variable') {
                 variable.setValue(v.value);
               } else {
@@ -287,6 +293,6 @@ class EntryBalam{
 }
 
 let entryBalam = new EntryBalam({ projectID: Entry.projectId });
-
-if (entryBalam.init()) entrylms.alert("성공적으로 활성화 되었습니다!\n서버 연결까지 시간이\n다소 소요될 수 있습니다.", "엔트리 비공식 확장기능 '바람'");
-else entrylms.alert("'바람'을 설치하는 중 오류가 발생했습니다.", "엔트리 비공식 확장기능 '바람'");
+const initR = entryBalam.init()
+if (initR == 1) entrylms.alert("성공적으로 활성화 되었습니다!\n서버 연결까지 시간이\n다소 소요될 수 있습니다.", "엔트리 비공식 확장기능 '바람'");
+else if (initR != 2) entrylms.alert("'바람'을 설치하는 중 오류가 발생했습니다.", "엔트리 비공식 확장기능 '바람'");
